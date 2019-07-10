@@ -8,7 +8,7 @@
 
 int main(int argc, const char **argv) 
 {
-	printf("obj2dif 1.1\n");
+	printf("obj2difPlus 1.1\n");
 	printf("originally by HiGuy, modifications by RandomityGuy\n");
 
 	if (argc > 1)
@@ -96,7 +96,7 @@ int main(int argc, const char **argv)
 	else
 	{
 		printf("Usage:\n");
-		printf("obj2dif <file> [-flip] [-fast]\n");
+		printf("obj2difPlus <file> [-flip] [-fast]\n");
 		printf("file: path to the obj file to convert\n");
 		printf("flip: (optional) flip normals\n");
 		printf("fast: (optional) use fast bsp generation, resultant dif may be laggier");
