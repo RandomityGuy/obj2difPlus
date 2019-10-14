@@ -8,13 +8,12 @@
 
 int main(int argc, const char **argv) 
 {
-	printf("obj2difPlus 1.1\n");
+	printf("obj2dif 1.2\n");
 	printf("originally by HiGuy, modifications by RandomityGuy\n");
 
 	if (argc > 1)
 	{
 		bool flipNormals = false;
-		bool fastBSP = false;
 		for (int i = 1; i < argc; i++)
 		{
 			const char* arg = argv[i];
@@ -22,8 +21,6 @@ int main(int argc, const char **argv)
 			if (strcmp(arg, "-flip") == 0)
 				flipNormals = true;
 
-			if (strcmp(arg, "-fast") == 0)
-				fastBSP = true;
 
 		}
 
@@ -41,11 +38,28 @@ int main(int argc, const char **argv)
 		//Default material
 		materials.push_back(tinyobj::material_t());
 
-		DIF::DIFBuilder builder;
+		std::vector<DIF::DIFBuilder*> builders;
+		DIF::DIFBuilder* builder = new DIF::DIFBuilder();
+		builders.push_back(builder);
+		int tricount = 0;
 		for (const tinyobj::shape_t shape : shapes) {
 
 			int vertStart = 0;
+			if (tricount > 4000) //Max limit of BSP Nodes is 8192 because after that, the next two bits are used for checking leaf indices 
+			{
+				tricount = 0;
+				builder = new DIF::DIFBuilder();
+				builders.push_back(builder);
+			}
 			for (int i = 0; i < shape.mesh.num_face_vertices.size(); i++) {
+
+				if (tricount > 4000) //Max limit of BSP Nodes is 8192 because after that, the next two bits are used for checking leaf indices 
+				{
+					tricount = 0;
+					builder = new DIF::DIFBuilder();
+					builders.push_back(builder);
+				}
+
 				tinyobj::index_t idx[3] = {
 						shape.mesh.indices[vertStart + 2],
 						shape.mesh.indices[vertStart + 1],
@@ -75,7 +89,8 @@ int main(int argc, const char **argv)
 				}
 
 				int material = shape.mesh.material_ids[i];
-				builder.addTriangle(triangle, (material == -1 ? shape.name : materials[material].name));
+				tricount++;
+				builder->addTriangle(triangle, (material == -1 ? shape.name : materials[material].name));
 				//builder.addTriangle(invertedTriangle, (material == -1 ? shape.name : materials[material].name));
 
 				vertStart += 3;
@@ -83,23 +98,30 @@ int main(int argc, const char **argv)
 
 		}
 
-		printf("Building DIF\n");
-		DIF::DIF dif;
-		builder.build(dif,flipNormals,fastBSP);
+		printf("Building DIFs\n");
+		int index = 0;
+		for (auto& difbuilder : builders)
+		{
+			DIF::DIF dif;
+			difbuilder->build(dif, flipNormals);
 
-		std::ofstream outStr;
-		outStr.open(std::string(argv[1]).substr(0, strlen(argv[1]) - 3) + "dif", std::ios::out | std::ios::binary);
-		dif.write(outStr, DIF::Version());
+
+			char buf[16];
+			std::ofstream outStr;
+			outStr.open(std::string(argv[1]).substr(0, strlen(argv[1]) - 4) + std::string(itoa(index,buf,10)) + ".dif", std::ios::out | std::ios::binary);
+			dif.write(outStr, DIF::Version());
+			index++;
+		}
+
 
 
 	}
 	else
 	{
 		printf("Usage:\n");
-		printf("obj2difPlus <file> [-flip] [-fast]\n");
+		printf("obj2dif <file> [-flip]\n");
 		printf("file: path to the obj file to convert\n");
 		printf("flip: (optional) flip normals\n");
-		printf("fast: (optional) use fast bsp generation, resultant dif may be laggier");
 	}
 	return 0;
 }
