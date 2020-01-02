@@ -45,7 +45,7 @@ int main(int argc, const char **argv)
 		for (const tinyobj::shape_t shape : shapes) {
 
 			int vertStart = 0;
-			if (tricount > 4000) //Max limit of BSP Nodes is 8192 because after that, the next two bits are used for checking leaf indices 
+			if (tricount > 16000) //Max limit of BSP Nodes is 8192 because after that, the next two bits are used for checking leaf indices 
 			{
 				tricount = 0;
 				builder = new DIF::DIFBuilder();
@@ -119,7 +119,7 @@ int main(int argc, const char **argv)
 	else
 	{
 		printf("Usage:\n");
-		printf("obj2dif <file> [-flip]\n");
+		printf("obj2difPlus <file> [-flip]\n");
 		printf("file: path to the obj file to convert\n");
 		printf("flip: (optional) flip normals\n");
 	}
