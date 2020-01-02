@@ -53,7 +53,7 @@ int main(int argc, const char **argv)
 			}
 			for (int i = 0; i < shape.mesh.num_face_vertices.size(); i++) {
 
-				if (tricount > 4000) //Max limit of BSP Nodes is 8192 because after that, the next two bits are used for checking leaf indices 
+				if (tricount > 16000) //Max limit of BSP Nodes is 8192 because after that, the next two bits are used for checking leaf indices 
 				{
 					tricount = 0;
 					builder = new DIF::DIFBuilder();
