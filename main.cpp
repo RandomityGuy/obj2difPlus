@@ -5,6 +5,7 @@
 #include <glm\glm.hpp>
 #include <dif\objects\dif.h>
 #include <dif\base\io.h>
+#include <chrono>
 
 int main(int argc, const char **argv) 
 {
@@ -14,6 +15,8 @@ int main(int argc, const char **argv)
 	if (argc > 1)
 	{
 		bool flipNormals = false;
+		bool doublesidedfaces = false;
+		bool splitbyaxis = false;
 		for (int i = 1; i < argc; i++)
 		{
 			const char* arg = argv[i];
@@ -21,7 +24,8 @@ int main(int argc, const char **argv)
 			if (strcmp(arg, "-flip") == 0)
 				flipNormals = true;
 
-
+			if (strcmp(arg, "-double") == 0)
+				doublesidedfaces = true;
 		}
 
 
@@ -42,10 +46,11 @@ int main(int argc, const char **argv)
 		DIF::DIFBuilder* builder = new DIF::DIFBuilder();
 		builders.push_back(builder);
 		int tricount = 0;
+		int alltris = 0;
 		for (const tinyobj::shape_t shape : shapes) {
 
 			int vertStart = 0;
-			if (tricount > 16000) //Max limit of BSP Nodes is 8192 because after that, the next two bits are used for checking leaf indices 
+			if (tricount > 16000) //Max BSP Node limit: 32767, max BSP Leaf limit: 16383, hence max polygons = 16383
 			{
 				tricount = 0;
 				builder = new DIF::DIFBuilder();
@@ -53,7 +58,7 @@ int main(int argc, const char **argv)
 			}
 			for (int i = 0; i < shape.mesh.num_face_vertices.size(); i++) {
 
-				if (tricount > 16000) //Max limit of BSP Nodes is 8192 because after that, the next two bits are used for checking leaf indices 
+				if (tricount > 16000) //Max BSP Node limit: 32767, max BSP Leaf limit: 16383, hence max polygons = 16383
 				{
 					tricount = 0;
 					builder = new DIF::DIFBuilder();
@@ -81,16 +86,47 @@ int main(int argc, const char **argv)
 						-attrib.texcoords[(idx[j].texcoord_index * 2) + 1]
 					);
 
+
+					if (attrib.normals.size() != 0)
 					triangle.points[j].normal = glm::vec3(
 						attrib.normals[(idx[j].normal_index * 3) + 0],
 						-attrib.normals[(idx[j].normal_index * 3) + 2],
 						attrib.normals[(idx[j].normal_index * 3) + 1]
 					);
+
+					if (doublesidedfaces)
+					{
+						invertedTriangle.points[j].vertex = glm::vec3(
+							attrib.vertices[(idx[j].vertex_index * 3) + 1],
+							-attrib.vertices[(idx[j].vertex_index * 3) + 2],
+							attrib.vertices[(idx[j].vertex_index * 3) + 0]
+						);
+						invertedTriangle.points[j].uv = glm::vec2(
+							attrib.texcoords[(idx[j].texcoord_index * 2) + 0],
+							-attrib.texcoords[(idx[j].texcoord_index * 2) + 1]
+						);
+
+
+						if (attrib.normals.size() != 0)
+							invertedTriangle.points[j].normal = glm::vec3(
+								-attrib.normals[(idx[j].normal_index * 3) + 0],
+								attrib.normals[(idx[j].normal_index * 3) + 2],
+								-attrib.normals[(idx[j].normal_index * 3) + 1]
+							);
+					}
+
 				}
 
 				int material = shape.mesh.material_ids[i];
 				tricount++;
-				builder->addTriangle(triangle, (material == -1 ? shape.name : materials[material].name));
+				alltris++;
+				builder->addTriangle(triangle, (material == -1 ? shape.name : materials[material].diffuse_texname.substr(0, materials[material].diffuse_texname.length() - 4)));
+				if (doublesidedfaces)
+				{
+					tricount++;
+					alltris++;
+					builder->addTriangle(invertedTriangle, (material == -1 ? shape.name : materials[material].diffuse_texname.substr(0, materials[material].diffuse_texname.length() - 4)));
+				}
 				//builder.addTriangle(invertedTriangle, (material == -1 ? shape.name : materials[material].name));
 
 				vertStart += 3;
@@ -98,13 +134,22 @@ int main(int argc, const char **argv)
 
 		}
 
-		printf("Building DIFs\n");
+		printf("Building DIFs for %d triangles\n",alltris);
 		int index = 0;
+		//long totduration = 0;
 		for (auto& difbuilder : builders)
 		{
+			printf("Building DIF %d/%d\n", index + 1, builders.size());
+
+			//auto start = std::chrono::high_resolution_clock::now();
+
 			DIF::DIF dif;
 			difbuilder->build(dif, flipNormals);
 
+			//auto finish = std::chrono::high_resolution_clock::now();
+
+			//long duration = std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count();
+			//totduration += duration;
 
 			char buf[16];
 			std::ofstream outStr;
@@ -112,6 +157,8 @@ int main(int argc, const char **argv)
 			dif.write(outStr, DIF::Version());
 			index++;
 		}
+		//printf("Time Taken:%d\n", totduration);
+		//getchar();
 
 
 
@@ -119,9 +166,10 @@ int main(int argc, const char **argv)
 	else
 	{
 		printf("Usage:\n");
-		printf("obj2difPlus <file> [-flip]\n");
+		printf("obj2dif <file> [-flip] [-double]\n");
 		printf("file: path to the obj file to convert\n");
 		printf("flip: (optional) flip normals\n");
+		printf("double: (optional) make all faces double sided\n");
 	}
 	return 0;
 }
