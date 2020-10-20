@@ -9,7 +9,7 @@
 
 int main(int argc, const char **argv) 
 {
-	printf("obj2dif 1.2.2\n");
+	printf("obj2dif 1.2.3\n");
 	printf("originally by HiGuy, modifications by RandomityGuy\n");
 
 	if (argc > 1)
