@@ -11,6 +11,7 @@ add_executable(obj2difPlus ${SOURCE_FILES})
 
 include_directories(3rdparty/tinyobjloader)
 include_directories(3rdparty/DifBuilder/include)
+include_directories(3rdparty/DifBuilder/3rdparty/)
 include_directories(3rdparty/DifBuilder/3rdparty/Dif)
 include_directories(3rdparty/DifBuilder/3rdparty/Dif/3rdparty/glm)
 include_directories(3rdparty/DifBuilder/3rdparty/Dif/include)

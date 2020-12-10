@@ -9,7 +9,7 @@
 
 int main(int argc, const char **argv) 
 {
-	printf("obj2dif 1.2.3\n");
+	printf("obj2dif 1.2.4\n");
 	printf("originally by HiGuy, modifications by RandomityGuy\n");
 
 	if (argc > 1)
@@ -17,6 +17,7 @@ int main(int argc, const char **argv)
 		bool flipNormals = false;
 		bool doublesidedfaces = false;
 		bool splitbyaxis = false;
+		int splitcount = 16000;
 		for (int i = 1; i < argc; i++)
 		{
 			const char* arg = argv[i];
@@ -26,6 +27,9 @@ int main(int argc, const char **argv)
 
 			if (strcmp(arg, "-double") == 0)
 				doublesidedfaces = true;
+
+			if (strcmp(arg, "-splitcount") == 0)
+				splitcount = fmin(atoi(argv[i + 1]), 16000);
 		}
 
 
@@ -47,10 +51,58 @@ int main(int argc, const char **argv)
 		builders.push_back(builder);
 		int tricount = 0;
 		int alltris = 0;
+
+
+		// Ok so we calculate the bounding box to offset all geometry to fix the weird origin thing
+
+		glm::vec3 min;
+		glm::vec3 max;
+
+		for (const tinyobj::shape_t shape : shapes)
+		{
+			int vertStart = 0;
+			for (int i = 0; i < shape.mesh.num_face_vertices.size(); i++)
+			{
+				tinyobj::index_t idx[3] = {
+						shape.mesh.indices[vertStart + 2],
+						shape.mesh.indices[vertStart + 1],
+						shape.mesh.indices[vertStart + 0]
+				};
+
+				for (int j = 0; j < 3; j++) {
+					glm::vec3 vertex = glm::vec3(
+						attrib.vertices[(idx[j].vertex_index * 3) + 0],
+						-attrib.vertices[(idx[j].vertex_index * 3) + 2],
+						attrib.vertices[(idx[j].vertex_index * 3) + 1]
+					);
+
+					if (min.x > vertex.x)
+						min.x = vertex.x;
+					if (min.y > vertex.y)
+						min.y = vertex.y;
+					if (min.z > vertex.z)
+						min.z = vertex.z;
+
+					if (max.x < vertex.x)
+						max.x = vertex.x;
+					if (max.y < vertex.y)
+						max.y = vertex.y;
+					if (max.z < vertex.z)
+						max.z = vertex.z;
+				}
+
+				vertStart += 3;
+			}
+		}
+
+		glm::vec3 size = max - min;
+		glm::vec3 off = glm::vec3(1, 1, 1);
+
+
 		for (const tinyobj::shape_t shape : shapes) {
 
 			int vertStart = 0;
-			if (tricount > 16000) //Max BSP Node limit: 32767, max BSP Leaf limit: 16383, hence max polygons = 16383
+			if (tricount > splitcount) //Max BSP Node limit: 32767, max BSP Leaf limit: 16383, hence max polygons = 16383
 			{
 				tricount = 0;
 				builder = new DIF::DIFBuilder();
@@ -58,7 +110,7 @@ int main(int argc, const char **argv)
 			}
 			for (int i = 0; i < shape.mesh.num_face_vertices.size(); i++) {
 
-				if (tricount > 16000) //Max BSP Node limit: 32767, max BSP Leaf limit: 16383, hence max polygons = 16383
+				if (tricount > splitcount) //Max BSP Node limit: 32767, max BSP Leaf limit: 16383, hence max polygons = 16383
 				{
 					tricount = 0;
 					builder = new DIF::DIFBuilder();
@@ -76,7 +128,7 @@ int main(int argc, const char **argv)
 				DIF::DIFBuilder::Triangle invertedTriangle;
 
 				for (int j = 0; j < 3; j++) {
-					triangle.points[j].vertex = glm::vec3(
+					triangle.points[j].vertex = size + off + glm::vec3(
 						attrib.vertices[(idx[j].vertex_index * 3) + 0],
 						-attrib.vertices[(idx[j].vertex_index * 3) + 2],
 						attrib.vertices[(idx[j].vertex_index * 3) + 1]
@@ -96,7 +148,7 @@ int main(int argc, const char **argv)
 
 					if (doublesidedfaces)
 					{
-						invertedTriangle.points[j].vertex = glm::vec3(
+						invertedTriangle.points[j].vertex = size + off + glm::vec3(
 							attrib.vertices[(idx[j].vertex_index * 3) + 1],
 							-attrib.vertices[(idx[j].vertex_index * 3) + 2],
 							attrib.vertices[(idx[j].vertex_index * 3) + 0]
@@ -166,10 +218,11 @@ int main(int argc, const char **argv)
 	else
 	{
 		printf("Usage:\n");
-		printf("obj2dif <file> [-flip] [-double]\n");
+		printf("obj2dif <file> [-flip] [-double] [-splitcount <count>]\n");
 		printf("file: path to the obj file to convert\n");
 		printf("flip: (optional) flip normals\n");
 		printf("double: (optional) make all faces double sided\n");
+		printf("splitcount <count>: (optional) changes the amount of triangles required till a split is required\n");
 	}
 	return 0;
 }
