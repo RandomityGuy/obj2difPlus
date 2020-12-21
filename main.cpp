@@ -2,9 +2,9 @@
 #include <DIFBuilder/DIFBuilder.hpp>
 #include <tiny_obj_loader.h>
 #define GLM_FORCE_INTRINSICS
-#include <glm\glm.hpp>
-#include <dif\objects\dif.h>
-#include <dif\base\io.h>
+#include <glm/glm.hpp>
+#include <dif/objects/dif.h>
+#include <dif/base/io.h>
 #include <chrono>
 
 bool flipNormals = false;
