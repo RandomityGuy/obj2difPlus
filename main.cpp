@@ -10,7 +10,7 @@
 bool flipNormals = false;
 bool doublesidedfaces = false;
 bool splitbyaxis = false;
-int splitcount = 16000;
+int splitcount = 12000;
 
 std::vector<DIF::DIF> buildInteriors(const char* objpath, std::vector<DIF::Interior>* pathedInteriors = NULL)
 {
@@ -189,13 +189,14 @@ std::vector<DIF::DIF> buildInteriors(const char* objpath, std::vector<DIF::Inter
 		difbuilder->build(dif, flipNormals);
 		interiors.push_back(dif);
 		index++;
+		delete difbuilder;
 	}
 	return interiors;
 }
 
 int main(int argc, const char **argv) 
 {
-	printf("obj2difplus 1.2.5\n");
+	printf("obj2difplus 1.2.6\n");
 	printf("originally by HiGuy, rewrite by RandomityGuy\n");
 
 	if (argc > 1)

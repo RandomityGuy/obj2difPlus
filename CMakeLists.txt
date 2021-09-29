@@ -6,7 +6,7 @@ add_subdirectory("3rdparty/tinyobjloader")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MT")
 set(CMAKE_CXX_FLAGS_DEBUG "/FS /MTd")
-set(CMAKE_CXX_FLAGS_RELEASE "/MT")
+set(CMAKE_CXX_FLAGS_RELEASE "/MT /")
 
 set(SOURCE_FILES main.cpp)
 add_executable(obj2difPlus ${SOURCE_FILES})

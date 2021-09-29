@@ -1,7 +1,7 @@
 # obj2difPlus
 
 A converter to convert any-size obj to lag-free difs.  
-Difs are capped at 16000 triangles, obj will be split and multiple difs will be exported accordingly.  
+Difs are capped at 12000 triangles, obj will be split and multiple difs will be exported accordingly.  
 If moving platforms are used, they will be exported to the first dif created.
 
 # Usage
