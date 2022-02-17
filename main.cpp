@@ -182,7 +182,7 @@ std::vector<DIF::DIF> buildInteriors(const char* objpath, std::vector<DIF::Inter
 			{
 				for (int i = 0; i < pathedInteriors->size(); i++)
 				{
-					difbuilder->addPathedInterior(pathedInteriors->at(i), std::vector<DIF::Marker>());
+					difbuilder->addPathedInterior(pathedInteriors->at(i), std::vector<DIF::DIFBuilder::Marker>());
 				}
 			}
 		}
@@ -196,7 +196,7 @@ std::vector<DIF::DIF> buildInteriors(const char* objpath, std::vector<DIF::Inter
 
 int main(int argc, const char **argv) 
 {
-	printf("obj2difplus 1.2.6\n");
+	printf("obj2difplus 1.2.7\n");
 	printf("originally by HiGuy, rewrite by RandomityGuy\n");
 
 	if (argc > 1)
