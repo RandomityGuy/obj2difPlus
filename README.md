@@ -26,7 +26,3 @@ Split the dif using the splitcount argument. Recommended value is the value that
 ## Inverted "Inside out" Dif
 
 Use the flip argument
-
-## Messed up UV
-
-Keep the face with the messed up UV away from the coordinate planes

@@ -196,7 +196,7 @@ std::vector<DIF::DIF> buildInteriors(const char* objpath, std::vector<DIF::Inter
 
 int main(int argc, const char **argv) 
 {
-	printf("obj2difplus 1.2.10\n");
+	printf("obj2difplus 1.2.11\n");
 	printf("originally by HiGuy, rewrite by RandomityGuy\n");
 
 	if (argc > 1)
